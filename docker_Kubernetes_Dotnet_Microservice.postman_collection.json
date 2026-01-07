@@ -1,0 +1,132 @@
+{
+	"info": {
+		"_postman_id": "5bfd062d-39c8-49b9-963e-cbb398109179",
+		"name": "docker_Kubernetes_Dotnet_Microservice",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "23411217"
+	},
+	"item": [
+		{
+			"name": "docker",
+			"item": [
+				{
+					"name": "get coupon",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:5082/api/coupon"
+					},
+					"response": []
+				},
+				{
+					"name": "get products",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:5083/api/product/"
+					},
+					"response": []
+				},
+				{
+					"name": "post login auth",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userName\": \"admin@gmail.com\",\r\n  \"password\": \"Admin@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5085/api/auth/login"
+					},
+					"response": []
+				},
+				{
+					"name": "main mvc app",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:5086/"
+					},
+					"response": []
+				},
+				{
+					"name": "get gateway",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:5087/api/coupon"
+					},
+					"response": []
+				},
+				{
+					"name": "get cart DCompose",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:5084/api/cart/GetCart/dd513af9-1fa5-4a80-9315-120156060185"
+					},
+					"response": []
+				},
+				{
+					"name": "get cart kube",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:30084/api/cart/GetCart/dd513af9-1fa5-4a80-9315-120156060185"
+					},
+					"response": []
+				},
+				{
+					"name": "get product kube",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:30083/api/product/"
+					},
+					"response": []
+				},
+				{
+					"name": "get coupon kube",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:30082/api/coupon/"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
