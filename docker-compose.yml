@@ -1,0 +1,53 @@
+services:
+
+  product-api:
+    build:
+      context: .
+      dockerfile: Mango.Services.ProductApi/Dockerfile
+    ports:
+      - "5083:80"
+
+  coupon-api:
+    build:
+      context: .
+      dockerfile: Mango.Services.CouponAPI/Dockerfile
+    ports:
+      - "5082:80"
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: Mango.Services.AuthAPI/Dockerfile
+    ports:
+      - "5085:80"
+
+  shoppingcart-api:
+    build:
+      context: .
+      dockerfile: Mango.Services.ShoppingCartAPI/Dockerfile
+    ports:
+      - "5084:80"
+    depends_on:
+      - product-api
+      - coupon-api
+
+  # ocelot-gateway:
+  #   build:
+  #     context: .
+  #     dockerfile: Mango.GatewaySolution/Dockerfile
+  #   ports:
+  #     - "5057:5057"
+  #   depends_on:
+  #     - product-api
+  #     - coupon-api
+  #     - shoppingcart-api
+  #     - auth-api
+
+  # mango-web:
+  #   build:
+  #     context: .
+  #     dockerfile: Mango.Web/Dockerfile
+  #   ports:
+  #     - "5086:80"
+  #   depends_on:
+  #     - ocelot-gateway
