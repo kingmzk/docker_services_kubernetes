@@ -18,13 +18,17 @@ spec:
           ports:
             - containerPort: 5082
 ---
+# k8s/coupon-api.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: coupon-api
 spec:
+  type: NodePort
   selector:
     app: coupon-api
   ports:
     - port: 5082
       targetPort: 5082
+      nodePort: 30082
+  
