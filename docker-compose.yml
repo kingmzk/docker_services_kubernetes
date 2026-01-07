@@ -5,28 +5,28 @@ services:
       context: .
       dockerfile: Mango.Services.ProductApi/Dockerfile
     ports:
-      - "5083:80"
+      - "5083:5083"
 
   coupon-api:
     build:
       context: .
       dockerfile: Mango.Services.CouponAPI/Dockerfile
     ports:
-      - "5082:80"
+      - "5082:5082"
 
   auth-api:
     build:
       context: .
       dockerfile: Mango.Services.AuthAPI/Dockerfile
     ports:
-      - "5085:80"
+      - "5085:5085"
 
   shoppingcart-api:
     build:
       context: .
       dockerfile: Mango.Services.ShoppingCartAPI/Dockerfile
     ports:
-      - "5084:80"
+      - "5084:5084"
     depends_on:
       - product-api
       - coupon-api
