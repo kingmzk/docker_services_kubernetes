@@ -1,0 +1,159 @@
+
+# Build Stage
+#FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+#WORKDIR /src
+
+#Copy the Solution and project file
+#COPY ["Mango.sln", "./"]
+#COPY ["Mango.Services.CouponAPI/Mango.Services.CouponAPI.csproj", "Mango.Services.CouponAPI/"]
+#COPY ["Mango.MessageBus/Mango.MessageBus.csproj", "Mango.MessageBus/"]
+
+#Restore Dependencies
+#RUN dotnet restore "Mango.sln"
+
+#copy all source code 
+#COPY . .
+
+#Build the Project
+#WORKDIR "/src/Mango.Services.CouponAPI"
+#RUN dotnet build "Mango.Services.CouponAPI.csproj" -c Release -o /app/Build
+
+# publish stage
+#FROM build as publish
+#RUN dotnet publish "Mango.Services.CouponAPI.csproj" -c Release -o /app/publish
+
+#Runtime stage
+#FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
+#WORKDIR /app
+#COPY --from=publish /app/publish .
+
+#Expose port
+#EXPOSE 5082
+
+#ENV ASPNETCORE_URLS=http://+:5082
+
+#ENTRYPOINT ["dotnet", "Mango.Services.CouponAPI.dll"]
+
+
+
+
+docker builder prune -a
+
+docker build -t mango-couponapi -f Mango.Services.CouponAPI/Dockerfile .
+
+docker run -d -p 5082:5082 --name mango-couponapi mango-couponapi
+
+docker builder prune -a
+
+docker build --no-cache -t mango-productapi -f Mango.Services.ProductApi/Dockerfile .
+
+docker run -d -p 5083:5083 --name mango-productapi mango-productapi
+
+docker builder prune -a
+
+docker build --no-cache -t mango-shoppingcartapi -f Mango.Services.ShoppingCartAPI/Dockerfile .
+
+docker run -d -p 5084:5084 --name mango-shoppingcartapi mango-shoppingcartapi
+
+docker builder prune -a
+
+docker build --no-cache -t mango-authapi -f Mango.Services.AuthAPI/Dockerfile .
+
+docker run -d -p 5085:5085 --name mango-authapi mango-authapi
+
+docker builder prune -a
+
+docker build --no-cache -t mango-web -f Mango.web/Dockerfile .
+
+docker run -d -p 5086:5086 --name mango-web mango-web
+
+docker builder prune -a
+
+docker build --no-cache -t mango-gateway -f Mango.GatewaySolution/Dockerfile .
+
+docker run -d -p 5087:5087 --name mango-gateway mango-gateway
+
+docker compose down -v
+docker compose build --no-cache
+docker compose up
+
+
+docker build -t product-api:1.0 -f Mango.Services.ProductApi/Dockerfile .
+docker build -t coupon-api:1.0 -f Mango.Services.CouponAPI/Dockerfile .
+docker build -t auth-api:1.0 -f Mango.Services.AuthAPI/Dockerfile .
+docker build -t shoppingcart-api:1.0 -f Mango.Services.ShoppingCartAPI/Dockerfile .
+docker build -t mango-web-api:1.0 -f Mango.Web/Dockerfile .
+docker build -t mango-gatewaysolution-api:1.0 -f Mango.GatewaySolution/Dockerfile .
+
+
+
+# k8s/shoppingcart-api.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shoppingcart-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shoppingcart-api
+  template:
+    metadata:
+      labels:
+        app: shoppingcart-api
+    spec:
+      containers:
+        - name: shoppingcart-api
+          image: shoppingcart-api:1.0
+          ports:
+            - containerPort: 5084
+          env:
+            - name: ServiceUrls__ProductAPI
+              value: http://host.docker.internal:30083
+            - name: ServiceUrls__CouponAPI
+              value: http://host.docker.internal:30082
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shoppingcart-api
+spec:
+  type: NodePort
+  selector:
+    app: shoppingcart-api
+  ports:
+    - port: 5084
+      targetPort: 5084
+      nodePort: 30084
+
+
+
+
+kubectl apply -f k8s/
+
+docker build -t product-api:1.0 -f Mango.Services.ProductApi/Dockerfile .
+docker build -t coupon-api:1.0 -f Mango.Services.CouponAPI/Dockerfile .
+docker build -t auth-api:1.0 -f Mango.Services.AuthAPI/Dockerfile .
+docker build -t shoppingcart-api:1.0 -f Mango.Services.ShoppingCartAPI/Dockerfile .
+
+kubectl apply -f k8s/
+
+kubectl get pods
+
+kubectl apply -f k8s/product-api.yaml
+kubectl exec -it deployment/shoppingcart-api -- sh (inside pod)
+kubectl exec -it shoppingcart-api-d4d49db68-9k5jv -- sh
+
+
+Orchestration summary
+When you deployed:
+Kubernetes reads your YAML → creates Deployments + Services
+Scheduler chooses nodes (Docker Desktop VM) → creates Pods
+Pods pull your Docker images (if not present locally)
+Services assign a stable ClusterIP → DNS names inside cluster
+NodePort exposes the service externally
+If a Pod crashes, Deployment automatically restarts it
+All pods can communicate using internal DNS names (product-api, coupon-api)
+
+
+
