@@ -1,5 +1,4 @@
-﻿
-# Build Stage
+﻿# Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 
@@ -28,3 +27,34 @@ EXPOSE 5082
 
 ENV ASPNETCORE_URLS=http://+:5082
 ENTRYPOINT ["dotnet", "Mango.Services.CouponAPI.dll"]
+
+
+
+#              #Inside Same Folder
+# # Build Stage
+# FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+# WORKDIR /src
+
+# # Copy project file
+# COPY ["Mango.Services.CouponAPI.csproj", "./"]
+
+# # Restore dependencies
+# RUN dotnet restore "Mango.Services.CouponAPI.csproj"
+
+# # Copy the rest of the source code
+# COPY . .
+
+# # Build
+# RUN dotnet build "Mango.Services.CouponAPI.csproj" -c Release -o /app/build
+
+# # Publish Stage
+# FROM build AS publish
+# RUN dotnet publish "Mango.Services.CouponAPI.csproj" -c Release -o /app/publish
+
+# # Runtime Stage
+# FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
+# WORKDIR /app
+# COPY --from=publish /app/publish .
+# EXPOSE 5082
+# ENV ASPNETCORE_URLS=http://+:5082
+# ENTRYPOINT ["dotnet", "Mango.Services.CouponAPI.dll"]
