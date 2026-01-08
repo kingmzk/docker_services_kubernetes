@@ -12,6 +12,7 @@ spec:
       labels:
         app: coupon-api
     spec:
+      restartPolicy: Always
       containers:
         - name: coupon-api
           image: coupon-api:1.0

@@ -77,6 +77,10 @@ docker compose down -v
 docker compose build --no-cache
 docker compose up
 
+inside same folder
+docker build -t mango-couponapi-test .
+docker run -d -p 5082:5082 --name couponapi mango-couponapi-test
+
 
 docker build -t product-api:1.0 -f Mango.Services.ProductApi/Dockerfile .
 docker build -t coupon-api:1.0 -f Mango.Services.CouponAPI/Dockerfile .
@@ -143,6 +147,13 @@ kubectl get pods
 kubectl apply -f k8s/product-api.yaml
 kubectl exec -it deployment/shoppingcart-api -- sh (inside pod)
 kubectl exec -it shoppingcart-api-d4d49db68-9k5jv -- sh
+
+ever update yml
+kubectl apply -f k8s/shoppingcart-api.yaml
+kubectl rollout status deployment/shoppingcart-api
+kubectl apply -f k8s/coupon-api.yaml
+kubectl rollout status deployment/coupon-api
+
 
 
 Orchestration summary
