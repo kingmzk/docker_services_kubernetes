@@ -1,0 +1,138 @@
+
+trigger:
+  branches:
+    include:
+      - main
+
+
+stages:
+- stage: CI
+  displayName: Build & Publish APIs
+  jobs:
+  - job: Build
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+      buildConfiguration: Release
+      dotnetVersion: '8.0.x'
+
+    steps:
+    - checkout: self
+
+    - task: UseDotNet@2
+      inputs:
+        version: $(dotnetVersion)
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: restore
+        projects: '**/*.sln'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: build
+        projects: '**/*.sln'
+        arguments: '--configuration $(buildConfiguration)'
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish Auth API
+      inputs:
+        command: publish
+        projects: 'Mango.Services.AuthAPI/*.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/AuthAPI'
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish Product API
+      inputs:
+        command: publish
+        projects: 'Mango.Services.ProductApi/Mango.Services.ProductAPI.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/ProductAPI'
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish Coupon API
+      inputs:
+        command: publish
+        projects: 'Mango.Services.CouponAPI/*.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/CouponAPI'
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish Shopping Cart API
+      inputs:
+        command: publish
+        projects: 'Mango.Services.ShoppingCartAPI/*.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/ShoppingCartAPI'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: drop
+
+
+- stage: Docker
+  displayName: Build & Push Docker Images
+  dependsOn: CI
+  jobs:
+  - job: DockerBuild
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+    # Docker login
+    - script: |
+        echo "$DOCKERHUB_PASSWORD" | docker login -u $DOCKERHUB_USERNAME --password-stdin
+      displayName: Docker Login
+      env:
+        DOCKERHUB_USERNAME: $(dockerHubUsername)
+        DOCKERHUB_PASSWORD: $(dockerHubPassword)
+
+    # -------- COUPON API --------
+    - script: |
+        docker build \
+          -f Mango.Services.CouponAPI/Dockerfile \
+          -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-coupon-api:$DOCKER_TAG \
+          .
+        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-coupon-api:$DOCKER_TAG
+      displayName: Build & Push Coupon API
+      env:
+        DOCKERHUB_USERNAME: $(dockerHubUsername)
+        DOCKERHUB_REPO_PREFIX: $(dockerHubRepoPrefix)
+        DOCKER_TAG: $(Build.BuildId)
+
+    # -------- AUTH API --------
+    - script: |
+        docker build \
+          -f Mango.Services.AuthAPI/Dockerfile \
+          -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-auth-api:$DOCKER_TAG \
+          .
+        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-auth-api:$DOCKER_TAG
+      displayName: Build & Push Auth API
+      env:
+        DOCKERHUB_USERNAME: $(dockerHubUsername)
+        DOCKERHUB_REPO_PREFIX: $(dockerHubRepoPrefix)
+        DOCKER_TAG: $(Build.BuildId)
+
+    # -------- PRODUCT API --------
+    - script: |
+        docker build \
+          -f Mango.Services.ProductApi/Dockerfile \
+          -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-product-api:$DOCKER_TAG \
+          .
+        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-product-api:$DOCKER_TAG
+      displayName: Build & Push Product API
+      env:
+        DOCKERHUB_USERNAME: $(dockerHubUsername)
+        DOCKERHUB_REPO_PREFIX: $(dockerHubRepoPrefix)
+        DOCKER_TAG: $(Build.BuildId)
+
+    # -------- SHOPPING CART API --------
+    - script: |
+        docker build \
+          -f Mango.Services.ShoppingCartAPI/Dockerfile \
+          -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-shoppingcart-api:$DOCKER_TAG \
+          .
+        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPO_PREFIX-shoppingcart-api:$DOCKER_TAG
+      displayName: Build & Push Shopping Cart API
+      env:
+        DOCKERHUB_USERNAME: $(dockerHubUsername)
+        DOCKERHUB_REPO_PREFIX: $(dockerHubRepoPrefix)
+        DOCKER_TAG: $(Build.BuildId)
